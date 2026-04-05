@@ -1,0 +1,9 @@
+streamlit
+python-pptx
+PyMuPDF
+Pillow
+python-dotenv
+openai
+pandas
+jpholiday
+pytz
