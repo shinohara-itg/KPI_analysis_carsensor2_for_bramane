@@ -2144,21 +2144,6 @@ with main_col:
                                 else:
                                     st.info("次に確認するとよいポイントを表示します。")
 
-                                if st.button("報告用に使う", key="pin_block4_summary_btn", use_container_width=False):
-                                    new_id = (
-                                        max([x.get("id", 0) for x in st.session_state.pinned_comments], default=0) + 1
-                                    )
-
-                                    st.session_state.pinned_comments.append({
-                                        "id": new_id,
-                                        "type": "block4_summary",
-                                        "selected_month": selected_month,
-                                        "previous_month": previous_month,
-                                        "comment": st.session_state.block4_summary_comment,
-                                    })
-                                    st.success("ブロック4のサマリーコメントをピン留めしました。")
-                                    st.rerun()
-
                                 st.markdown("#### 施策影響が示唆される指標")
                                 if ad_impact_df.empty:
                                     st.info("該当データがありません。")
