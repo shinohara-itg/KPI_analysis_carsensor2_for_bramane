@@ -23,7 +23,7 @@ DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
 # 画面設定
 # =========================
 st.set_page_config(
-    page_title="KPI分析レポートジェネレーター（CarSensor）",
+    page_title="KPI分析レポートジェネレーター for CarSensor",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -1993,11 +1993,17 @@ with main_col:
                                 if ad_impact_df.empty:
                                     st.info("該当データがありません。")
                                 else:
-                                    st.dataframe(
-                                        ad_impact_df[["指標番号", "指標名", "接触広告", "値"]],
-                                        use_container_width=True,
-                                        hide_index=True,
-                                        height=320
+                                    display_ad_df = ad_impact_df[["指標番号", "指標名", "接触広告", "値"]].copy()
+
+                                    styled_ad_df = display_ad_df.style.format({
+                                        "値": lambda v: (
+                                            f"<span style='font-size:20px;font-weight:bold;color:{'red' if pd.notna(v) and v < 0 else 'black'};'>{v}</span>"
+                                        )
+                                    }, escape="html")
+
+                                    st.write(
+                                        styled_ad_df.to_html(escape=False, index=False),
+                                        unsafe_allow_html=True
                                     )
 
                 except Exception as e:
@@ -2447,4 +2453,5 @@ with main_col:
 # フッター
 # =========================
 st.markdown("---")
-st.write("右カラムのピン留めコメント欄に、途中分析で気になった示唆を残し、最後にサマリー化できます。")
+st.write("右カラムのピン留めコメント欄に、途中分析で気になった示唆を残し最後にサマリー化できます。")
+
