@@ -105,6 +105,8 @@ def init_session_state() -> None:
         "block2_summary_comment": None,
         "block3_summary_comment": None,
         "block4_summary_comment": None,
+        "block4_selected_metric": None,
+        "block4_selected_segment": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -413,6 +415,38 @@ def build_ad_impact_table_for_overview(
     result_df = result_df.sort_values(["値", "指標番号", "指標名"], ascending=[False, True, True]).reset_index(drop=True)
     return result_df
 
+def build_ad_impact_table_for_block4_selection(
+    df: pd.DataFrame,
+    selected_month: str,
+    selected_metric_name: str,
+    selected_segment_name: str
+) -> pd.DataFrame:
+    required_cols = ["調査月", "接触広告", "指標名", "指標番号", "セグメント名", "値"]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"必要な列が不足しています: {', '.join(missing_cols)}")
+
+    work_df = filter_lift_value_df(df).copy()
+    work_df["調査月"] = work_df["調査月"].astype(str)
+    work_df["接触広告"] = normalize_str_series(work_df["接触広告"])
+    work_df["指標名"] = work_df["指標名"].astype(str)
+    work_df["セグメント名"] = work_df["セグメント名"].astype(str)
+    work_df["指標番号"] = pd.to_numeric(work_df["指標番号"], errors="coerce")
+    work_df["値"] = pd.to_numeric(work_df["値"], errors="coerce")
+
+    work_df = work_df[
+        (work_df["調査月"] == selected_month) &
+        (work_df["指標名"] == selected_metric_name) &
+        (work_df["セグメント名"] == selected_segment_name) &
+        (work_df["接触広告"] != "合計値")
+    ].copy()
+
+    if work_df.empty:
+        return pd.DataFrame()
+
+    result_df = work_df[["接触広告", "値"]].copy()
+    result_df = result_df.sort_values("値", ascending=False).reset_index(drop=True)
+    return result_df
 
 def create_overview_summary_text(
     top_positive_df: pd.DataFrame,
@@ -1981,11 +2015,128 @@ with main_col:
                             with st.container(border=True):
                                 st.markdown("### ブロック4｜なぜ動いたか？")
 
-                                st.markdown("#### サマリーコメント")
-                                if st.session_state.block4_summary_comment:
-                                    st.write(st.session_state.block4_summary_comment)
+                                st.markdown("#### 条件を選択してください")
+
+                                block4_base_df = filter_lift_value_df(overview_df).copy()
+                                block4_base_df["調査月"] = block4_base_df["調査月"].astype(str)
+                                block4_base_df["接触広告"] = normalize_str_series(block4_base_df["接触広告"])
+                                block4_base_df["指標名"] = block4_base_df["指標名"].astype(str)
+                                block4_base_df["セグメント名"] = block4_base_df["セグメント名"].astype(str)
+
+                                block4_base_df = block4_base_df[
+                                    (block4_base_df["調査月"] == selected_month) &
+                                    (block4_base_df["接触広告"] != "合計値")
+                                ].copy()
+
+                                if block4_base_df.empty:
+                                    st.info("ブロック4で表示できる施策影響データがありません。")
                                 else:
-                                    st.info("施策影響が示唆される指標の要約を表示します。")
+                                    metric_options = (
+                                        block4_base_df[["指標番号", "指標名"]]
+                                        .drop_duplicates()
+                                        .sort_values(["指標番号", "指標名"])
+                                    )
+
+                                    metric_label_options = [
+                                        f"{int(row['指標番号'])}｜{row['指標名']}"
+                                        for _, row in metric_options.iterrows()
+                                        if pd.notna(row["指標番号"])
+                                    ]
+
+                                    select_col1, select_col2 = st.columns(2)
+
+                                    with select_col1:
+                                        selected_metric_label = st.selectbox(
+                                            "指標名を選択してください",
+                                            options=metric_label_options,
+                                            key="block4_metric_select"
+                                        )
+
+                                    selected_metric_name = selected_metric_label.split("｜", 1)[1]
+
+                                    segment_options = (
+                                        block4_base_df[
+                                            block4_base_df["指標名"] == selected_metric_name
+                                        ][["セグメント名"]]
+                                        .drop_duplicates()
+                                        .sort_values("セグメント名")
+                                    )
+
+                                    segment_label_options = segment_options["セグメント名"].tolist()
+
+                                    with select_col2:
+                                        selected_segment_name = st.selectbox(
+                                            "セグメント名を選択してください",
+                                            options=segment_label_options,
+                                            key="block4_segment_select"
+                                        )
+
+                                    selected_block4_df = build_ad_impact_table_for_block4_selection(
+                                        overview_df,
+                                        selected_month=selected_month,
+                                        selected_metric_name=selected_metric_name,
+                                        selected_segment_name=selected_segment_name
+                                    )
+
+                                    st.markdown("#### 接触広告別の値")
+
+                                    if selected_block4_df.empty:
+                                        st.info("選択条件に該当するデータがありません。")
+                                    else:
+                                        styled_block4_df = selected_block4_df.style.format({
+                                            "値": format_emphasized_number,
+                                        }, escape="html")
+
+                                        st.write(
+                                            styled_block4_df.to_html(escape=False, index=False),
+                                            unsafe_allow_html=True
+                                        )
+
+                                    st.markdown("#### 分析コメント")
+
+                                    comment_col1, comment_col2 = st.columns([1, 1])
+
+                                    with comment_col1:
+                                        if st.button("コメント生成", key="generate_block4_selected_comment_btn", use_container_width=True):
+                                            try:
+                                                with st.spinner("選択された指標・セグメントのコメントを生成中です..."):
+                                                    st.session_state.block4_summary_comment = generate_block4_summary_comment(
+                                                        ad_impact_df=selected_block4_df,
+                                                        selected_month=selected_month,
+                                                        previous_month=previous_month
+                                                    )
+                                                st.success("コメントを生成しました。")
+                                                st.rerun()
+                                            except Exception as e:
+                                                st.error(f"コメント生成中にエラーが発生しました: {e}")
+
+                                    with comment_col2:
+                                        if st.button("コメントをクリア", key="clear_block4_selected_comment_btn", use_container_width=True):
+                                            st.session_state.block4_summary_comment = None
+                                            st.rerun()
+
+                                    if st.session_state.block4_summary_comment:
+                                        st.write(st.session_state.block4_summary_comment)
+                                    else:
+                                        st.info("「コメント生成」を押すと、選択された指標・セグメントについてコメントを生成します。")
+
+                                    if st.button("報告用に使う", key="pin_block4_summary_btn", use_container_width=False):
+                                        if not st.session_state.block4_summary_comment:
+                                            st.warning("先にコメント生成を行ってください。")
+                                        else:
+                                            new_id = (
+                                                max([x.get("id", 0) for x in st.session_state.pinned_comments], default=0) + 1
+                                            )
+
+                                            st.session_state.pinned_comments.append({
+                                                "id": new_id,
+                                                "type": "block4_summary",
+                                                "selected_month": selected_month,
+                                                "previous_month": previous_month,
+                                                "comment": st.session_state.block4_summary_comment,
+                                            })
+                                            st.success("ブロック4のサマリーコメントをピン留めしました。")
+                                            st.rerun()
 
                                 st.markdown("#### 次に確認するとよいポイント")
                                 if st.session_state.block4_navigation_comment:
