@@ -23,7 +23,7 @@ DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
 # 画面設定
 # =========================
 st.set_page_config(
-    page_title="KPI分析レポートジェネレーター for CarSensor",
+    page_title="KPI分析レポートジェネレーター（CarSensor）",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -2453,5 +2453,4 @@ with main_col:
 # フッター
 # =========================
 st.markdown("---")
-st.write("右カラムのピン留めコメント欄に、途中分析で気になった示唆を残し最後にサマリー化できます。")
-
+st.write("右カラムのピン留めコメント欄に、途中分析で気になった示唆を残し、最後にサマリー化できます。")
