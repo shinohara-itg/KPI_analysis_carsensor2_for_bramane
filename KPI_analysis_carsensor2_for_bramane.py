@@ -1800,72 +1800,79 @@ with main_col:
                                 previous_month=previous_month
                             )
 
-                            try:
-                                navigation_text = generate_overview_navigation_comment(
-                                    summary_text=summary_text,
-                                    top_positive_df=top_positive_df,
-                                    top_negative_df=top_negative_df,
-                                    seg_pos_df=seg_pos_df,
-                                    seg_neg_df=seg_neg_df,
-                                    ad_impact_df=ad_impact_df,
-                                    selected_month=selected_month,
-                                    previous_month=previous_month
-                                )
-                                st.session_state.overview_navigation_comment = navigation_text
-                            except Exception:
-                                st.session_state.overview_navigation_comment = "次に見るべきポイントの生成に失敗しました。ブロック2〜4を順に確認してください。"
+                            if st.session_state.overview_navigation_comment is None:
+                                try:
+                                    navigation_text = generate_overview_navigation_comment(
+                                        summary_text=summary_text,
+                                        top_positive_df=top_positive_df,
+                                        top_negative_df=top_negative_df,
+                                        seg_pos_df=seg_pos_df,
+                                        seg_neg_df=seg_neg_df,
+                                        ad_impact_df=ad_impact_df,
+                                        selected_month=selected_month,
+                                        previous_month=previous_month
+                                    )
+                                    st.session_state.overview_navigation_comment = navigation_text
+                                except Exception:
+                                    st.session_state.overview_navigation_comment = "次に見るべきポイントの生成に失敗しました。ブロック2〜4を順に確認してください。"
 
-                            try:
-                                block2_summary_comment = generate_block2_summary_comment(
-                                    top_positive_df=top_positive_df,
-                                    top_negative_df=top_negative_df,
-                                    selected_month=selected_month,
-                                    previous_month=previous_month
-                                )
-                                st.session_state.block2_summary_comment = block2_summary_comment
-                            except Exception:
-                                st.session_state.block2_summary_comment = "主要な改善指標と悪化指標を確認し、今月どのKPIが大きく動いたかを把握してください。"
+                            if st.session_state.block2_summary_comment is None:
+                                try:
+                                    block2_summary_comment = generate_block2_summary_comment(
+                                        top_positive_df=top_positive_df,
+                                        top_negative_df=top_negative_df,
+                                        selected_month=selected_month,
+                                        previous_month=previous_month
+                                    )
+                                    st.session_state.block2_summary_comment = block2_summary_comment
 
-                            try:
-                                block2_navigation_comment = generate_block2_navigation_comment(
-                                    block2_summary_comment=st.session_state.block2_summary_comment,
-                                    top_positive_df=top_positive_df,
-                                    top_negative_df=top_negative_df,
-                                    seg_pos_df=seg_pos_df,
-                                    seg_neg_df=seg_neg_df,
-                                    ad_impact_df=ad_impact_df,
-                                    selected_month=selected_month,
-                                    previous_month=previous_month
-                                )
-                                st.session_state.block2_navigation_comment = block2_navigation_comment
-                            except Exception:
-                                st.session_state.block2_navigation_comment = "次に、ブロック3でどのセグメントが変化を動かしたかを確認し、必要に応じてブロック4で施策との関係も見てください。"
+                                except Exception:
+                                    st.session_state.block2_summary_comment = (
+                                        "主要な改善指標と悪化指標を確認し、"
+                                        "今月どのKPIが大きく動いたかを把握してください。"
+                                    )
+                            if st.session_state.block2_navigation_comment is None:        
+                                try:
+                                    block2_navigation_comment = generate_block2_navigation_comment(
+                                        block2_summary_comment=st.session_state.block2_summary_comment,
+                                        top_positive_df=top_positive_df,
+                                        top_negative_df=top_negative_df,
+                                        seg_pos_df=seg_pos_df,
+                                        seg_neg_df=seg_neg_df,
+                                        ad_impact_df=ad_impact_df,
+                                        selected_month=selected_month,
+                                        previous_month=previous_month
+                                    )
+                                    st.session_state.block2_navigation_comment = block2_navigation_comment
+                                except Exception:
+                                    st.session_state.block2_navigation_comment = "次に、ブロック3でどのセグメントが変化を動かしたかを確認し、必要に応じてブロック4で施策との関係も見てください。"
 
 
+                            if st.session_state.block3_summary_comment is None:
+                                try:
+                                    block3_summary_comment = generate_block3_summary_comment(
+                                        seg_pos_df=seg_pos_df,
+                                        seg_neg_df=seg_neg_df,
+                                        selected_month=selected_month,
+                                        previous_month=previous_month
+                                    )
+                                    st.session_state.block3_summary_comment = block3_summary_comment
+                                except Exception:
+                                    st.session_state.block3_summary_comment = "セグメント差が大きい指標を確認し、どの層の動きが全体変化に影響しているかを把握してください。"
 
-                            try:
-                                block3_summary_comment = generate_block3_summary_comment(
-                                    seg_pos_df=seg_pos_df,
-                                    seg_neg_df=seg_neg_df,
-                                    selected_month=selected_month,
-                                    previous_month=previous_month
-                                )
-                                st.session_state.block3_summary_comment = block3_summary_comment
-                            except Exception:
-                                st.session_state.block3_summary_comment = "セグメント差が大きい指標を確認し、どの層の動きが全体変化に影響しているかを把握してください。"
-
-                            try:
-                                block3_navigation_comment = generate_block3_navigation_comment(
-                                    block3_summary_comment=st.session_state.block3_summary_comment,
-                                    seg_pos_df=seg_pos_df,
-                                    seg_neg_df=seg_neg_df,
-                                    ad_impact_df=ad_impact_df,
-                                    selected_month=selected_month,
-                                    previous_month=previous_month
-                                )
-                                st.session_state.block3_navigation_comment = block3_navigation_comment
-                            except Exception:
-                                st.session_state.block3_navigation_comment = "次に、ブロック4で施策影響が示唆される指標を確認し、変化要因を整理してください。"
+                            if st.session_state.block3_navigation_comment is None:
+                                try:
+                                    block3_navigation_comment = generate_block3_navigation_comment(
+                                        block3_summary_comment=st.session_state.block3_summary_comment,
+                                        seg_pos_df=seg_pos_df,
+                                        seg_neg_df=seg_neg_df,
+                                        ad_impact_df=ad_impact_df,
+                                        selected_month=selected_month,
+                                        previous_month=previous_month
+                                    )
+                                    st.session_state.block3_navigation_comment = block3_navigation_comment
+                                except Exception:
+                                    st.session_state.block3_navigation_comment = "次に、ブロック4で施策影響が示唆される指標を確認し、変化要因を整理してください。"
 
 
 
