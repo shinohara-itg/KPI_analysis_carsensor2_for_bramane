@@ -657,7 +657,8 @@ def build_ad_effect_table(
     work_df = work_df[
         (work_df["調査月"] == selected_month) &
         (work_df["指標番号"] == selected_metric_no) &
-        (work_df["セグメント番号"] == selected_segment_no)
+        (work_df["セグメント番号"] == selected_segment_no)&
+        (work_df["接触広告"] != "合計値")
     ].copy()
 
     if work_df.empty:
@@ -666,11 +667,6 @@ def build_ad_effect_table(
     ad_master = (
         work_df[["接触広告"]]
         .drop_duplicates()
-        .assign(
-            sort_order=lambda x: x["接触広告"].astype(str).apply(
-                lambda v: 0 if v == "合計値" else 1
-            )
-        )
         .sort_values(["sort_order", "接触広告"])
     )
 
