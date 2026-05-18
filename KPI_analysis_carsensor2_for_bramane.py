@@ -1921,7 +1921,7 @@ with main_col:
                                         "comment": summary_text,
                                     })
                                     st.success("総括コメントをピン留めしました。")
-                                    st.rerun()
+                                    # st.rerun()
 
                             # ==================================================
                             # ブロック2
@@ -1954,7 +1954,7 @@ with main_col:
                                         "comment": st.session_state.block2_summary_comment,
                                     })
                                     st.success("ブロック2のサマリーコメントをピン留めしました。")
-                                    st.rerun()
+                                    # st.rerun()
 
                                 def format_metric_no(v):
                                     if pd.isna(v):
@@ -2032,7 +2032,7 @@ with main_col:
                                         "comment": st.session_state.block3_summary_comment,
                                     })
                                     st.success("ブロック3のサマリーコメントをピン留めしました。")
-                                    st.rerun()
+                                    # st.rerun()
 
                                 st.markdown("#### セグメント差がプラスに大きい指標")
                                 if seg_pos_df.empty:
@@ -2189,7 +2189,7 @@ with main_col:
                                                 "comment": st.session_state.block4_summary_comment,
                                             })
                                             st.success("ブロック4のサマリーコメントをピン留めしました。")
-                                            st.rerun()
+                                            # st.rerun()
 
                                 st.markdown("#### 次に確認するとよいポイント")
                                 if st.session_state.block4_navigation_comment:
