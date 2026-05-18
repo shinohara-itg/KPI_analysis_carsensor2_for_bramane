@@ -1871,33 +1871,31 @@ with main_col:
                                     st.success("ブロック2のサマリーコメントをピン留めしました。")
                                     st.rerun()
 
-                                row2_col1, row2_col2 = st.columns(2)
+                                st.markdown("#### 変化量がプラスに大きい指標 Top3")
+                                if top_positive_df.empty:
+                                    st.info("該当データがありません。")
+                                else:
+                                    display_df = top_positive_df[["指標番号", "指標名", diff_col]].copy()
+                                    st.dataframe(
+                                        display_df,
+                                        use_container_width=True,
+                                        hide_index=True,
+                                        height=180
+                                    )
 
-                                with row2_col1:
-                                    st.markdown("#### 変化量がプラスに大きい指標 Top3")
-                                    if top_positive_df.empty:
-                                        st.info("該当データがありません。")
-                                    else:
-                                        display_df = top_positive_df[["指標番号", "指標名", diff_col]].copy()
-                                        st.dataframe(
-                                            display_df,
-                                            use_container_width=True,
-                                            hide_index=True,
-                                            height=180
-                                        )
+                                st.markdown("")
 
-                                with row2_col2:
-                                    st.markdown("#### 変化量がマイナスに大きい指標 Top3")
-                                    if top_negative_df.empty:
-                                        st.info("該当データがありません。")
-                                    else:
-                                        display_df = top_negative_df[["指標番号", "指標名", diff_col]].copy()
-                                        st.dataframe(
-                                            display_df,
-                                            use_container_width=True,
-                                            hide_index=True,
-                                            height=180
-                                        )
+                                st.markdown("#### 変化量がマイナスに大きい指標 Top3")
+                                if top_negative_df.empty:
+                                    st.info("該当データがありません。")
+                                else:
+                                    display_df = top_negative_df[["指標番号", "指標名", diff_col]].copy()
+                                    st.dataframe(
+                                        display_df,
+                                        use_container_width=True,
+                                        hide_index=True,
+                                        height=180
+                                    )
 
                             # ==================================================
                             # ブロック3
@@ -2060,7 +2058,12 @@ with main_col:
                                     row_cols = st.columns([1, 4, 3, 2])
                                     row_cols[0].write(int(row["指標番号"]) if pd.notna(row["指標番号"]) else "")
                                     row_cols[1].write(row["指標名"])
-                                    row_cols[2].write(row[diff_col])
+                                    diff_value = row[diff_col]
+                                    diff_color = "red" if pd.notna(diff_value) and diff_value < 0 else "black"
+                                    row_cols[2].markdown(
+                                        f"<span style='font-size:20px;font-weight:bold;color:{diff_color};'>{diff_value}</span>",
+                                        unsafe_allow_html=True
+                                    )
 
                                     metric_no = int(row["指標番号"]) if pd.notna(row["指標番号"]) else None
                                     detail_key = f"kpi_detail_btn_{selected_month}_{metric_no}"
@@ -2115,7 +2118,12 @@ with main_col:
                                             seg_cols = st.columns([1, 4, 3, 2])
                                             seg_cols[0].write(seg_no if seg_no is not None else "")
                                             seg_cols[1].write(seg_row["セグメント名"])
-                                            seg_cols[2].write(seg_row[selected_diff_col])
+                                            seg_diff_value = seg_row[selected_diff_col]
+                                            seg_diff_color = "red" if pd.notna(seg_diff_value) and seg_diff_value < 0 else "black"
+                                            seg_cols[2].markdown(
+                                                f"<span style='font-size:20px;font-weight:bold;color:{seg_diff_color};'>{seg_diff_value}</span>",
+                                                unsafe_allow_html=True
+                                            )
 
                                             ad_effect_key = (
                                                 f"ad_effect_btn_"
@@ -2181,7 +2189,11 @@ with main_col:
 
                                                     row_cols = st.columns([4, 2, 2])
                                                     row_cols[0].write(ad_name)
-                                                    row_cols[1].write(ad_value)
+                                                    ad_color = "red" if pd.notna(ad_value) and ad_value < 0 else "black"
+                                                    row_cols[1].markdown(
+                                                        f"<span style='font-size:20px;font-weight:bold;color:{ad_color};'>{ad_value}</span>",
+                                                        unsafe_allow_html=True
+                                                    )
 
                                                     btn_key = (
                                                         f"generate_ad_comment_"
