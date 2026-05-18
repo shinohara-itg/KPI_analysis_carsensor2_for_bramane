@@ -1436,7 +1436,58 @@ def generate_block4_summary_comment(
 
     return response.choices[0].message.content.strip()
 
+def generate_block4_selected_summary_comment(
+    ad_impact_df: pd.DataFrame,
+    selected_metric_name: str,
+    selected_segment_name: str,
+    selected_month: str,
+    previous_month: str
+) -> str:
+    def df_to_text(df: pd.DataFrame, max_rows: int = 20) -> str:
+        if df is None or df.empty:
+            return "該当なし"
+        return df.head(max_rows).to_string(index=False)
 
+    system_prompt = """
+あなたは市場調査分析のシニアアナリストです。
+選択された指標・セグメントに限定して、接触広告別の値から施策影響の示唆を日本語で簡潔にまとめてください。
+
+要件:
+- 2〜4文程度
+- 必ず選択された指標名とセグメント名に触れる
+- 値が高い接触広告、低い接触広告、平均との差が読み取れる場合は言及する
+- 因果は断定しない
+- レポート本文に使いやすい自然な日本語にする
+"""
+
+    user_prompt = f"""
+対象月: {selected_month}
+前月: {previous_month}
+
+【選択された指標】
+{selected_metric_name}
+
+【選択されたセグメント】
+{selected_segment_name}
+
+【接触広告別の値】
+{df_to_text(ad_impact_df)}
+
+この情報をもとに、
+選択された指標・セグメントに限定して「なぜ動いたか？」のコメントを作成してください。
+"""
+
+    response = client.chat.completions.create(
+        model=DEPLOYMENT,
+        messages=[
+            {"role": "system", "content": system_prompt.strip()},
+            {"role": "user", "content": user_prompt.strip()},
+        ],
+        temperature=0.2,
+        max_tokens=400,
+    )
+
+    return response.choices[0].message.content.strip()
 
 
 def pin_current_comment() -> None:
@@ -1818,15 +1869,15 @@ with main_col:
 
 
 
-                            try:
-                                block4_summary_comment = generate_block4_summary_comment(
-                                    ad_impact_df=ad_impact_df,
-                                    selected_month=selected_month,
-                                    previous_month=previous_month
-                                )
-                                st.session_state.block4_summary_comment = block4_summary_comment
-                            except Exception:
-                                st.session_state.block4_summary_comment = "施策影響が示唆される指標を確認し、広告接触との関係から変化要因を把握してください。"
+                            # try:
+                            #     block4_summary_comment = generate_block4_summary_comment(
+                            #         ad_impact_df=ad_impact_df,
+                            #         selected_month=selected_month,
+                            #         previous_month=previous_month
+                            #     )
+                            #     st.session_state.block4_summary_comment = block4_summary_comment
+                            # except Exception:
+                            #     st.session_state.block4_summary_comment = "施策影響が示唆される指標を確認し、広告接触との関係から変化要因を把握してください。"
 
                             try:
                                 block4_navigation_comment = generate_block4_navigation_comment(
@@ -2100,8 +2151,10 @@ with main_col:
                                         if st.button("コメント生成", key="generate_block4_selected_comment_btn", use_container_width=True):
                                             try:
                                                 with st.spinner("選択された指標・セグメントのコメントを生成中です..."):
-                                                    st.session_state.block4_summary_comment = generate_block4_summary_comment(
+                                                    st.session_state.block4_summary_comment = generate_block4_selected_summary_comment(
                                                         ad_impact_df=selected_block4_df,
+                                                        selected_metric_name=selected_metric_name,
+                                                        selected_segment_name=selected_segment_name,
                                                         selected_month=selected_month,
                                                         previous_month=previous_month
                                                     )
