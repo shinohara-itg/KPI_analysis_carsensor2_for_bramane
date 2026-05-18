@@ -1871,16 +1871,33 @@ with main_col:
                                     st.success("ブロック2のサマリーコメントをピン留めしました。")
                                     st.rerun()
 
+                                def format_metric_no(v):
+                                    if pd.isna(v):
+                                        return ""
+                                    return f"{int(v)}"
+
+                                def format_emphasized_number(v):
+                                    if pd.isna(v):
+                                        return ""
+                                    color = "red" if v < 0 else "black"
+                                    return (
+                                        f"<span style='font-size:20px;font-weight:bold;color:{color};'>"
+                                        f"{v:.1f}"
+                                        f"</span>"
+                                    )
+
                                 st.markdown("#### 変化量がプラスに大きい指標 Top3")
                                 if top_positive_df.empty:
                                     st.info("該当データがありません。")
                                 else:
                                     display_df = top_positive_df[["指標番号", "指標名", diff_col]].copy()
-                                    st.dataframe(
-                                        display_df,
-                                        use_container_width=True,
-                                        hide_index=True,
-                                        height=180
+                                    styled_df = display_df.style.format({
+                                        "指標番号": format_metric_no,
+                                        diff_col: format_emphasized_number,
+                                    }, escape="html")
+                                    st.write(
+                                        styled_df.to_html(escape=False, index=False),
+                                        unsafe_allow_html=True
                                     )
 
                                 st.markdown("")
@@ -1890,11 +1907,13 @@ with main_col:
                                     st.info("該当データがありません。")
                                 else:
                                     display_df = top_negative_df[["指標番号", "指標名", diff_col]].copy()
-                                    st.dataframe(
-                                        display_df,
-                                        use_container_width=True,
-                                        hide_index=True,
-                                        height=180
+                                    styled_df = display_df.style.format({
+                                        "指標番号": format_metric_no,
+                                        diff_col: format_emphasized_number,
+                                    }, escape="html")
+                                    st.write(
+                                        styled_df.to_html(escape=False, index=False),
+                                        unsafe_allow_html=True
                                     )
 
                             # ==================================================
@@ -1996,9 +2015,8 @@ with main_col:
                                     display_ad_df = ad_impact_df[["指標番号", "指標名", "接触広告", "値"]].copy()
 
                                     styled_ad_df = display_ad_df.style.format({
-                                        "値": lambda v: (
-                                            f"<span style='font-size:20px;font-weight:bold;color:{'red' if pd.notna(v) and v < 0 else 'black'};'>{v}</span>"
-                                        )
+                                        "指標番号": format_metric_no,
+                                        "値": format_emphasized_number,
                                     }, escape="html")
 
                                     st.write(
