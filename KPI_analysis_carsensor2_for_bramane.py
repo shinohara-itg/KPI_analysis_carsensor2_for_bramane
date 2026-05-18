@@ -2144,21 +2144,6 @@ with main_col:
                                 else:
                                     st.info("次に確認するとよいポイントを表示します。")
 
-                                st.markdown("#### 施策影響が示唆される指標")
-                                if ad_impact_df.empty:
-                                    st.info("該当データがありません。")
-                                else:
-                                    display_ad_df = ad_impact_df[["指標番号", "指標名", "接触広告", "値"]].copy()
-
-                                    styled_ad_df = display_ad_df.style.format({
-                                        "指標番号": format_metric_no,
-                                        "値": format_emphasized_number,
-                                    }, escape="html")
-
-                                    st.write(
-                                        styled_ad_df.to_html(escape=False, index=False),
-                                        unsafe_allow_html=True
-                                    )
 
                 except Exception as e:
                     st.error(f"総括の表示中にエラーが発生しました: {e}")
